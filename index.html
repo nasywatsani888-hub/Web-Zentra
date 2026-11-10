@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZENTRA - CNC Spindle Health Monitoring & Fault Diagnosis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300e5ff'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg>">
+</head>
+<body>
+
+  <!-- ==================================================================== -->
+  <!-- PERSISTENT LEFT SIDEBAR                                              -->
+  <!-- ==================================================================== -->
+  <aside id="app-sidebar">
+    <!-- Brand Logo (Image 2) -->
+    <div class="sidebar-brand">
+      <img src="./images/logo-zentra.png" alt="ZENTRA" class="brand-logo-img" />
+    </div>
+
+    <!-- Navigation Menu Items (Matches Image 1) -->
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+        </svg>
+        <span>Overview</span>
+      </button>
+
+      <button class="nav-item" data-view="spindle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="3" y1="15" x2="21" y2="15"></line>
+          <line x1="9" y1="3" x2="9" y2="21"></line>
+          <line x1="15" y1="3" x2="15" y2="21"></line>
+        </svg>
+        <span>Spindle Diagnostic</span>
+      </button>
+
+      <button class="nav-item" data-view="registry">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="18" rx="3"></rect>
+          <circle cx="6" cy="8" r="1.5" fill="currentColor"></circle>
+          <circle cx="6" cy="16" r="1.5" fill="currentColor"></circle>
+          <line x1="11" y1="8" x2="18" y2="8"></line>
+          <line x1="11" y1="16" x2="18" y2="16"></line>
+        </svg>
+        <span>Device Registry</span>
+      </button>
+
+      <button class="nav-item" data-view="service">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="12" y1="18" x2="12" y2="12"></line>
+          <line x1="9" y1="15" x2="15" y2="15"></line>
+        </svg>
+        <span>Service Log</span>
+      </button>
+
+      <button class="nav-item" data-view="reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <line x1="8" y1="13" x2="16" y2="13"></line>
+          <line x1="8" y1="17" x2="14" y2="17"></line>
+          <line x1="10" y1="9" x2="10" y2="9"></line>
+        </svg>
+        <span>Shift Reports</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- ==================================================================== -->
+  <!-- MAIN CONTENT AREA                                                    -->
+  <!-- ==================================================================== -->
+  <main id="app-main">
+    <!-- Active View Container (Rendered by app.js) -->
+    <div id="view-content"></div>
+  </main>
+
+  <!-- Core Application Scripts -->
+  <script src="./app.js"></script>
+</body>
+</html>

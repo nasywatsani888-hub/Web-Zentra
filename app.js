@@ -27,8 +27,8 @@ const INITIAL_MACHINES = [
     healthIndex: 42,
     runHours: 1420,
     lastUpdated: "Live",
-    historyVibRms: [2.1, 2.3, 2.6, 2.8, 3.1, 3.3, 3.42],
-    historyTemp: [39.0, 40.5, 42.1, 44.0, 46.2, 47.8, 48.5],
+    historyVibRms: [2.8, 3.4, 3.1, 4.2, 3.6, 4.5, 3.3, 4.1, 3.7, 3.42],
+    historyTemp: [45.8, 47.2, 48.9, 47.5, 50.8, 48.9, 51.5, 49.8, 51.0, 48.5],
     telemetryLogs: [
       { timestamp: "14:21:05", timeLabel: "14:21", temp: 48.5, vibRms: 3.42, vibN1: 1.85, vibN2: 4.80 },
       { timestamp: "14:21:00", timeLabel: "14:21", temp: 48.4, vibRms: 3.40, vibN1: 1.84, vibN2: 4.78 },
@@ -59,8 +59,8 @@ const INITIAL_MACHINES = [
     healthIndex: 71,
     runHours: 2310,
     lastUpdated: "Live",
-    historyVibRms: [1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.15],
-    historyTemp: [38.2, 38.9, 39.5, 40.2, 41.0, 41.8, 42.1],
+    historyVibRms: [1.8, 2.1, 1.9, 2.4, 2.0, 2.6, 2.2, 2.5, 2.1, 2.15],
+    historyTemp: [39.8, 41.2, 40.5, 42.6, 41.8, 43.4, 42.1, 43.8, 42.5, 42.1],
     telemetryLogs: [
       { timestamp: "14:21:05", timeLabel: "14:21", temp: 42.1, vibRms: 2.15, vibN1: 2.45, vibN2: 1.65 },
       { timestamp: "14:21:00", timeLabel: "14:21", temp: 42.0, vibRms: 2.14, vibN1: 2.43, vibN2: 1.64 },
@@ -91,8 +91,8 @@ const INITIAL_MACHINES = [
     healthIndex: 94,
     runHours: 850,
     lastUpdated: "Live",
-    historyVibRms: [0.80, 0.82, 0.84, 0.83, 0.86, 0.84, 0.85],
-    historyTemp: [35.5, 35.8, 36.0, 36.1, 36.2, 36.2, 36.2],
+    historyVibRms: [0.81, 0.84, 0.83, 0.86, 0.84, 0.85, 0.83, 0.86, 0.84, 0.85],
+    historyTemp: [35.8, 36.1, 36.0, 36.3, 36.1, 36.2, 36.1, 36.3, 36.2, 36.2],
     telemetryLogs: [
       { timestamp: "14:21:05", timeLabel: "14:21", temp: 36.2, vibRms: 0.85, vibN1: 0.75, vibN2: 0.90 },
       { timestamp: "14:21:00", timeLabel: "14:21", temp: 36.2, vibRms: 0.84, vibN1: 0.74, vibN2: 0.89 },
@@ -123,8 +123,8 @@ const INITIAL_MACHINES = [
     healthIndex: 98,
     runHours: 320,
     lastUpdated: "Live",
-    historyVibRms: [0.60, 0.62, 0.64, 0.63, 0.65, 0.64, 0.65],
-    historyTemp: [34.0, 34.2, 34.5, 34.6, 34.7, 34.8, 34.8],
+    historyVibRms: [0.62, 0.65, 0.64, 0.66, 0.63, 0.66, 0.64, 0.65, 0.64, 0.65],
+    historyTemp: [34.3, 34.6, 34.5, 34.8, 34.6, 34.8, 34.5, 34.8, 34.7, 34.8],
     telemetryLogs: [
       { timestamp: "14:21:05", timeLabel: "14:21", temp: 34.8, vibRms: 0.65, vibN1: 0.60, vibN2: 0.70 },
       { timestamp: "14:21:00", timeLabel: "14:21", temp: 34.7, vibRms: 0.64, vibN1: 0.59, vibN2: 0.69 },
@@ -302,8 +302,11 @@ function renderKpiCardsHtml() {
 function generateFigmaAreaChartSvg(data, thresholdVal, thresholdLabel, color) {
   const width = 210;
   const height = 58;
-  const maxVal = Math.max(...data, thresholdVal * 1.25);
-  const minVal = 0;
+  const isTemp = thresholdVal > 20;
+  const dataMax = Math.max(...data);
+  const dataMin = Math.min(...data);
+  const minVal = isTemp ? Math.max(20, Math.floor(dataMin - 4)) : 0;
+  const maxVal = Math.max(dataMax, thresholdVal * (isTemp ? 1.06 : 1.25));
   const range = maxVal - minVal || 1;
 
   const pts = data.map((v, i) => {
@@ -354,31 +357,8 @@ function generateFigmaAreaChartSvg(data, thresholdVal, thresholdLabel, color) {
   `;
 }
 
-// ==============================================================================
-// 1. OVERVIEW PAGE (Matches Image 1 Exactly)
-// ==============================================================================
-function renderOverviewHtml() {
-  const sorted = getSortedMachines();
-  const critical = sorted.find((m) => m.status === "OUTER_RACE_FAULT");
-
-  let alertBannerHtml = "";
-  if (!state.isAlertResolved && critical) {
-    alertBannerHtml = `
-      <div class="alert-banner-figma">
-        <div class="alert-figma-left">
-          <span class="alert-figma-badge">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            HIGH URGENCY
-          </span>
-          <span class="alert-figma-machine">CNC Milling 01</span>
-          <span class="alert-figma-msg">N2 bearing vibration exceeds ISO limit (BPFO: 142 Hz). Recommended technical response: within 4 hours.</span>
-        </div>
-        <button class="btn-figma-resolve" id="btn-resolve-alert">Resolve</button>
-      </div>
-    `;
-  }
-
-  const cardsHtml = sorted
+function renderOverviewCardsHtml(sorted) {
+  return sorted
     .map((m) => {
       const isUrgent = m.status === "OUTER_RACE_FAULT";
       const isMedium = m.status === "INNER_RACE_FAULT";
@@ -416,7 +396,7 @@ function renderOverviewHtml() {
             <div class="card-title-text">${m.name}</div>
             <div class="card-run-pill">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>RUN 05:42:18</span>
+              <span>RUN LIVE</span>
             </div>
           </div>
 
@@ -445,15 +425,15 @@ function renderOverviewHtml() {
           <div class="metrics-row-figma">
             <div class="metric-pill-box">
               <div class="metric-pill-label">Vibration RMS</div>
-              <div class="metric-pill-val" style="color: ${color};">${m.vibrationRms.toFixed(2)} mm/s</div>
+              <div class="metric-pill-val" style="color: ${color}; font-weight: 700;">${m.vibrationRms.toFixed(2)} mm/s</div>
             </div>
             <div class="metric-pill-box">
               <div class="metric-pill-label">Spindle Temp</div>
-              <div class="metric-pill-val" style="color: ${color};">${m.temperature.toFixed(1)} °C</div>
+              <div class="metric-pill-val" style="color: ${m.temperature > 45 ? "#ef4444" : "#38bdf8"}; font-weight: 700;">${m.temperature.toFixed(1)} °C</div>
             </div>
             <div class="metric-pill-box">
               <div class="metric-pill-label">Health Index</div>
-              <div class="metric-pill-val" style="color: ${color};">${m.healthIndex}%</div>
+              <div class="metric-pill-val" style="color: ${color}; font-weight: 700;">${m.healthIndex}%</div>
             </div>
           </div>
 
@@ -467,6 +447,31 @@ function renderOverviewHtml() {
       `;
     })
     .join("");
+}
+
+// ==============================================================================
+// 1. OVERVIEW PAGE (Matches Image 1 Exactly)
+// ==============================================================================
+function renderOverviewHtml() {
+  const sorted = getSortedMachines();
+  const critical = sorted.find((m) => m.status === "OUTER_RACE_FAULT");
+
+  let alertBannerHtml = "";
+  if (!state.isAlertResolved && critical) {
+    alertBannerHtml = `
+      <div class="alert-banner-figma">
+        <div class="alert-figma-left">
+          <span class="alert-figma-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            HIGH URGENCY
+          </span>
+          <span class="alert-figma-machine">CNC Milling 01</span>
+          <span class="alert-figma-msg">N2 bearing vibration exceeds ISO limit (BPFO: 142 Hz). Recommended technical response: within 4 hours.</span>
+        </div>
+        <button class="btn-figma-resolve" id="btn-resolve-alert">Resolve</button>
+      </div>
+    `;
+  }
 
   return `
     <div class="overview-header">
@@ -480,10 +485,10 @@ function renderOverviewHtml() {
     </div>
 
     ${alertBannerHtml}
-    ${renderKpiCardsHtml()}
+    <div id="overview-kpi-container">${renderKpiCardsHtml()}</div>
 
-    <div class="machine-grid-figma">
-      ${cardsHtml}
+    <div class="machine-grid-figma" id="overview-machine-grid">
+      ${renderOverviewCardsHtml(sorted)}
     </div>
   `;
 }
@@ -499,29 +504,8 @@ function attachOverviewEvents() {
   }
 }
 
-// ==============================================================================
-// 2. SPINDLE DIAGNOSTIC PAGE (Matches Mockup 2)
-// ==============================================================================
-function renderSpindleDiagnosticHtml() {
-  const sorted = getSortedMachines();
-  const critical = sorted.find((m) => m.status === "OUTER_RACE_FAULT");
-
-  let alertBannerHtml = "";
-  if (!state.isAlertResolved && critical) {
-    alertBannerHtml = `
-      <div class="alert-banner">
-        <div class="alert-left">
-          <span class="alert-pill">HIGH URGENCY</span>
-          <span class="alert-text">
-            <strong>${critical.name}</strong> — ${critical.anomalyMessage}
-          </span>
-        </div>
-        <button class="btn-resolve" onclick="state.isAlertResolved=true; renderApp();">Resolve</button>
-      </div>
-    `;
-  }
-
-  const cardsHtml = state.machines
+function renderSpindleCardsHtml() {
+  return state.machines
     .map((m) => {
       const isUrgent = m.status === "OUTER_RACE_FAULT";
       const isMedium = m.status === "INNER_RACE_FAULT";
@@ -559,15 +543,15 @@ function renderSpindleDiagnosticHtml() {
           <div class="metrics-row" style="margin-bottom: 12px;">
             <div class="metric-box">
               <div class="metric-label">Vibration RMS</div>
-              <div class="metric-value font-mono" style="color: ${vibColor}">${m.vibrationRms.toFixed(2)} mm/s</div>
+              <div class="metric-value font-mono" style="color: ${vibColor}; font-weight: 700;">${m.vibrationRms.toFixed(2)} mm/s</div>
             </div>
             <div class="metric-box">
               <div class="metric-label">Spindle Temp</div>
-              <div class="metric-value font-mono" style="color: ${m.temperature > 45 ? "#ef4444" : "#0284c7"}">${m.temperature.toFixed(1)} °C</div>
+              <div class="metric-value font-mono" style="color: ${m.temperature > 45 ? "#ef4444" : "#0284c7"}; font-weight: 700;">${m.temperature.toFixed(1)} °C</div>
             </div>
             <div class="metric-box">
               <div class="metric-label">Health Index</div>
-              <div class="metric-value font-mono" style="color: ${vibColor}">${m.healthIndex}%</div>
+              <div class="metric-value font-mono" style="color: ${vibColor}; font-weight: 700;">${m.healthIndex}%</div>
             </div>
           </div>
 
@@ -578,6 +562,29 @@ function renderSpindleDiagnosticHtml() {
       `;
     })
     .join("");
+}
+
+// ==============================================================================
+// 2. SPINDLE DIAGNOSTIC PAGE (Matches Mockup 2)
+// ==============================================================================
+function renderSpindleDiagnosticHtml() {
+  const sorted = getSortedMachines();
+  const critical = sorted.find((m) => m.status === "OUTER_RACE_FAULT");
+
+  let alertBannerHtml = "";
+  if (!state.isAlertResolved && critical) {
+    alertBannerHtml = `
+      <div class="alert-banner">
+        <div class="alert-left">
+          <span class="alert-pill">HIGH URGENCY</span>
+          <span class="alert-text">
+            <strong>${critical.name}</strong> — ${critical.anomalyMessage}
+          </span>
+        </div>
+        <button class="btn-resolve" onclick="state.isAlertResolved=true; renderApp();">Resolve</button>
+      </div>
+    `;
+  }
 
   return `
     <div class="top-header">
@@ -585,10 +592,10 @@ function renderSpindleDiagnosticHtml() {
     </div>
 
     ${alertBannerHtml}
-    ${renderKpiCardsHtml()}
+    <div id="spindle-kpi-container">${renderKpiCardsHtml()}</div>
 
-    <div class="machine-grid">
-      ${cardsHtml}
+    <div class="machine-grid" id="spindle-machine-grid">
+      ${renderSpindleCardsHtml()}
     </div>
   `;
 }
@@ -966,7 +973,7 @@ function renderMachineDetailHtml() {
                 <th>N2 (Front)</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="machine-detail-tbody">
               ${tableRows}
             </tbody>
           </table>
@@ -1310,41 +1317,91 @@ function attachAddEvents() {
 }
 
 // ==============================================================================
-// 8. LIVE SIMULATION ENGINE (Smooth Client-Side Ticker, No Python Needed!)
+// 8. LIVE SIMULATION ENGINE (Ultra-Dynamic Real-time Ticker, 1s Refresh)
 // ==============================================================================
+let simTick = 0;
+
 function initLiveSimulation() {
   setInterval(() => {
     if (!state.isSimulationActive) return;
 
+    simTick++;
     const now = new Date();
     const timeStr = now.toLocaleTimeString("id-ID", { hour12: false });
     const timeShort = timeStr.substring(0, 5);
 
     state.machines.forEach((m) => {
-      // Natural minor micro-fluctuations (±0.03 mm/s, ±0.05 °C)
-      const dVib = (Math.random() - 0.48) * 0.05;
-      const dTemp = (Math.random() - 0.48) * 0.04;
+      if (m.id === "CNC-001") {
+        // =====================================================================
+        // MESIN 1: CNC Milling EVO-1 (Kritis - Outer Race Fault)
+        // Fluktuasi DINAMIS & SIGNIFIKAN di atas Batas ISO 2.80 mm/s
+        // =====================================================================
+        const waveA = Math.sin(simTick * 0.42) * 0.65;
+        const waveB = Math.cos(simTick * 0.85) * 0.30;
+        const jitter = (Math.random() - 0.5) * 0.35;
+        
+        // Vibration RMS: berayun tajam antara ~3.10 hingga ~4.75 mm/s
+        m.vibrationRms = Number(Math.max(2.85, Math.min(5.20, 3.75 + waveA + waveB + jitter)).toFixed(2));
+        
+        // Temperature: berayun antara ~47.0 °C hingga ~52.5 °C (Thermal Anomaly)
+        const tempWave = Math.sin(simTick * 0.30) * 2.4;
+        const tempJitter = (Math.random() - 0.5) * 0.6;
+        m.temperature = Number(Math.max(46.0, Math.min(54.0, 49.5 + tempWave + tempJitter)).toFixed(1));
+        
+        // Cacat dominan pada bantalan depan N2
+        m.vibrationN2 = Number((m.vibrationRms * 1.38 + (Math.random() - 0.5) * 0.25).toFixed(2));
+        m.vibrationN1 = Number((m.vibrationRms * 0.55 + (Math.random() - 0.5) * 0.15).toFixed(2));
+        
+        // Health Index dinamis
+        m.healthIndex = Math.max(28, Math.min(49, Math.round(42 - (m.vibrationRms - 3.4) * 8)));
 
-      let baseVib = m.status === "OUTER_RACE_FAULT" ? 3.42 : m.status === "INNER_RACE_FAULT" ? 2.15 : 0.75;
-      let baseTemp = m.status === "OUTER_RACE_FAULT" ? 48.5 : m.status === "INNER_RACE_FAULT" ? 42.1 : 35.5;
+      } else if (m.id === "CNC-002") {
+        // =====================================================================
+        // MESIN 2: DMU 50 EVO_1 (Waspada - Inner Race Fault)
+        // Fluktuasi DINAMIS di zona peringatan kuning (1.80 - 2.75 mm/s)
+        // =====================================================================
+        const waveA = Math.sin(simTick * 0.38 + 1.2) * 0.42;
+        const waveB = Math.sin(simTick * 0.90) * 0.18;
+        const jitter = (Math.random() - 0.5) * 0.22;
+        
+        // Vibration RMS: berayun antara ~1.85 hingga ~2.72 mm/s
+        m.vibrationRms = Number(Math.max(1.80, Math.min(2.78, 2.25 + waveA + waveB + jitter)).toFixed(2));
+        
+        // Temperature: berayun antara ~40.5 °C hingga ~44.5 °C
+        const tempWave = Math.sin(simTick * 0.28 + 0.8) * 1.8;
+        const tempJitter = (Math.random() - 0.5) * 0.4;
+        m.temperature = Number(Math.max(39.5, Math.min(44.8, 42.2 + tempWave + tempJitter)).toFixed(1));
+        
+        // Cacat cincin dalam N1
+        m.vibrationN1 = Number((m.vibrationRms * 1.28 + (Math.random() - 0.5) * 0.18).toFixed(2));
+        m.vibrationN2 = Number((m.vibrationRms * 0.72 + (Math.random() - 0.5) * 0.12).toFixed(2));
+        
+        // Health Index dinamis
+        m.healthIndex = Math.max(64, Math.min(79, Math.round(71 - (m.vibrationRms - 2.15) * 10)));
 
-      m.vibrationRms = Math.max(0.2, Number((m.vibrationRms + dVib).toFixed(2)));
-      m.temperature = Math.max(25.0, Number((m.temperature + dTemp).toFixed(1)));
+      } else {
+        // =====================================================================
+        // MESIN 3 & 4: Kondisi Sehat & Stabil (Kontras Visual terhadap Kerusakan)
+        // Micro-fluctuations sangat halus (±0.02 mm/s, ±0.03 °C)
+        // =====================================================================
+        const dVib = (Math.random() - 0.5) * 0.04;
+        const dTemp = (Math.random() - 0.5) * 0.03;
+        const baseVib = m.id === "CNC-004" ? 0.65 : 0.85;
+        const baseTemp = m.id === "CNC-004" ? 34.8 : 36.2;
+        
+        m.vibrationRms = Number(Math.max(0.4, Math.min(1.1, baseVib + dVib)).toFixed(2));
+        m.temperature = Number(Math.max(30.0, Math.min(38.0, baseTemp + dTemp)).toFixed(1));
+        m.vibrationN1 = Number((m.vibrationRms * 0.85).toFixed(2));
+        m.vibrationN2 = Number((m.vibrationRms * 0.90).toFixed(2));
+      }
 
-      // Keep in reasonable bounds near state
-      if (Math.abs(m.vibrationRms - baseVib) > 0.4) m.vibrationRms = baseVib;
-      if (Math.abs(m.temperature - baseTemp) > 2.0) m.temperature = baseTemp;
-
-      m.vibrationN1 = Number((m.vibrationRms * (m.status === "INNER_RACE_FAULT" ? 1.15 : 0.75)).toFixed(2));
-      m.vibrationN2 = Number((m.vibrationRms * (m.status === "OUTER_RACE_FAULT" ? 1.4 : 0.8)).toFixed(2));
-
-      // Update history
+      // Update history buffer (pertahankan 10 titik agar kurva bergelombang dinamis)
       m.historyVibRms.shift();
       m.historyVibRms.push(m.vibrationRms);
       m.historyTemp.shift();
       m.historyTemp.push(m.temperature);
 
-      // Prepend telemetry log
+      // Catat log telemetri terbaru
       m.telemetryLogs.unshift({
         timestamp: timeStr,
         timeLabel: timeShort,
@@ -1353,18 +1410,51 @@ function initLiveSimulation() {
         vibN1: m.vibrationN1,
         vibN2: m.vibrationN2
       });
-      if (m.telemetryLogs.length > 5) m.telemetryLogs.pop();
+      if (m.telemetryLogs.length > 6) m.telemetryLogs.pop();
     });
 
-    // Update active view dynamic elements without re-rendering entire page to avoid flickering
+    // Update elemen DOM yang sedang aktif secara instan & bebas kedip
     updateDynamicDom();
-  }, 1500);
+  }, 1000);
 }
 
 function updateDynamicDom() {
-  if (state.currentView === "machine-detail") {
+  if (state.currentView === "overview") {
+    const grid = document.getElementById("overview-machine-grid");
+    if (grid) {
+      grid.innerHTML = renderOverviewCardsHtml(getSortedMachines());
+    }
+    const kpi = document.getElementById("overview-kpi-container");
+    if (kpi) {
+      kpi.innerHTML = renderKpiCardsHtml();
+    }
+  } else if (state.currentView === "spindle") {
+    const grid = document.getElementById("spindle-machine-grid");
+    if (grid) {
+      grid.innerHTML = renderSpindleCardsHtml();
+    }
+    const kpi = document.getElementById("spindle-kpi-container");
+    if (kpi) {
+      kpi.innerHTML = renderKpiCardsHtml();
+    }
+  } else if (state.currentView === "machine-detail") {
     const machine = state.machines.find((m) => m.id === state.selectedMachineId) || state.machines[0];
     drawDualCanvasChart("dual-monitoring-canvas", machine);
+    const tbody = document.getElementById("machine-detail-tbody");
+    if (tbody) {
+      tbody.innerHTML = machine.telemetryLogs
+        .map(
+          (log) => `
+        <tr>
+          <td style="color: #94a3b8;">${log.timestamp}</td>
+          <td style="font-weight: 700; color: #f1f5f9;">${log.temp.toFixed(1)} °C</td>
+          <td style="font-weight: 700; color: #38bdf8;">${log.vibN1.toFixed(2)} mm/s</td>
+          <td style="font-weight: 700; color: #f59e0b;">${log.vibN2.toFixed(2)} mm/s</td>
+        </tr>
+      `
+        )
+        .join("");
+    }
   }
 }
 

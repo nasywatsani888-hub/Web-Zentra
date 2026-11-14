@@ -2,7 +2,7 @@
 > **Dokumen Spesifikasi Teknis, Desain Antarmuka (UI/UX Figma), & Arsitektur Sistem**  
 > **Kompetisi**: Kembara UNYVerse 2026 — Sub-Tema Smart Manufacturing (Mitra Industri: PT Yogya Presisi Tehnikatama Industri / PT YPTI)  
 > **Tim**: Kata Budi "Pengen Jadi Mapres" — Universitas Negeri Yogyakarta (UNY)  
-> **Versi Dokumen**: 2.2 (Revisi Desain Figma, Tipografi Poppins, & Standalone Architecture)
+> **Versi Dokumen**: 2.7 (Finalisasi Shift Reports: Desain Minimalis Aksi Pilih/Batal, Bebas Kedut Hover Card Mesin, Modal Scroll Independen, & Standar Output Cetak A4 Landscape)
 
 ---
 
@@ -104,16 +104,13 @@ Sistem mengadopsi 3 kelas kondisi presisi tinggi sesuai standar getaran mesin IS
   - Judul `Overview` (Font Poppins SemiBold, ukuran **24px**).
   - Pill Jam Digital format `HH : MM : SS  WIB` dengan font monospaced Poppins.
   - Tombol aksi `+ Add Machine` (pill hitam ber-border putih).
-- **High Urgency Alert Banner**:
-  - Badge hazard: `⚠ HIGH URGENCY` (oranye).
-  - Target mesin: `CNC Milling 01` (atau unit mesin dalam status kritis).
-  - Deskripsi: *"N2 bearing vibration exceeds ISO limit (BPFO: 142 Hz). Recommended technical response: within 4 hours."*
-  - Tombol interaktif: `Resolve` (oranye pekat `#ea580c`).
-- **4 Kartu KPI Statistik**:
+- **Indikator Urgensi Otomatis (Clean UI)**:
+  - Banner peringatan statis atas ditiadakan demi tampilan industrial yang bersih dan luas; status urgensi ditampilkan secara otomatis dan presisi pada kartu mesin (border merah `#dc2626`, badge hazard `Urgent`, dan **Dynamic Priority Float-to-Top** yang mengangkat unit kritis ke posisi teratas).
+- **4 Kartu KPI Statistik (Eksklusif di Overview)**:
   1. `Total Machines`: Nilai **4** (atau sesuai jumlah unit terdaftar).
-  2. `Normal:`: Nilai **3** (hijau/putih).
-  3. `Action required:`: Nilai **1** (oranye/merah).
-  4. `Average Spindle Health:`: Nilai persentase rata-rata kesehatan spindle (misal **79%**).
+  2. `Normal:`: Nilai **2** (hijau).
+  3. `Action required:`: Nilai **2** (oranye/merah).
+  4. `Average Spindle Health:`: Nilai persentase rata-rata kesehatan spindle (**75%**).
 - **Grid Kartu Mesin CNC 2x2**:
   - Mengimplementasikan **Dynamic Priority Float-to-Top**: unit mesin berstatus *High Urgency* secara otomatis berada di posisi kiri atas.
   - Setiap kartu menampilkan:
@@ -127,25 +124,55 @@ Sistem mengadopsi 3 kelas kondisi presisi tinggi sesuai standar getaran mesin IS
 
 ### 5.2. Spindle Diagnostic
 - Judul halaman: `Spindle Diagnostic` (Poppins SemiBold, **24px**).
-- 4 Kartu KPI Statistik ringkasan kondisi pabrik.
+- Tampilan langsung berfokus pada **Grid Kartu Diagnostik 3D Spindle** (tanpa kartu KPI atau alert banner agar ruang pandang maksimal).
 - Grid kartu diagnostik per mesin dengan pratinjau foto 3D horisontal (`spindle-horizontal.png`), animasi pendaran bahaya (*pulsing glow hotspot*), pembacaan parameter telemetri, dan tautan ke halaman detail mesin.
 
 ### 5.3. Device Registry
 - Judul halaman: `Device Registry` (Poppins SemiBold, **24px**).
-- Kolom pencarian dinamis (*search input*) dengan *live filtering* tanpa kehilangan fokus cursor.
-- Tabel konektivitas perangkat IoT:
-  - Kolom: *Machine Name*, *Device ID*, *IP Address*, *Status Koneksi* (`Connected` hijau), dan *Last Data Received*.
+- Tampilan fokus langsung ke instrumen IoT:
+  - Kolom pencarian dinamis (*search input*) dengan *live filtering* tanpa kehilangan fokus cursor.
+  - Tabel konektivitas perangkat IoT (Machine Name, Device ID, IP Address, Status `Connected`, Last Data Received).
 
 ### 5.4. Service Log
 - Judul halaman: `Service Log` (Poppins SemiBold, **24px**).
 - Subjudul: *Recommended Maintenance :*.
 - Kartu jadwal pemeliharaan spindle dengan visualisasi foto 3D potongan melintang vertikal (`spindle-cutaway.png`), titik kerusakan bantalan bawah menyala merah, estimasi batas waktu perbaikan (*SLA*), serta tombol penugasan `Tugaskan Teknisi`.
 
-### 5.5. Shift Reports
+### 5.5. Shift Reports Studio (Interactive Generator & Multi-Machine Selection)
 - Judul halaman: `Shift Reports` (Poppins SemiBold, **24px**).
-- Filter interaktif pemilihan mesin (*All Machines*) dan periode shift kerja.
-- Daftar riwayat berkas *Daily Machine Reports* per shift.
-- Aksi: Tombol `View` untuk modal pratinjau ringkasan dan tombol `Download` untuk mengunduh berkas `.csv` riil langsung ke komputer pengguna.
+- Mengusung model **Interactive Report Studio / Generator** terpadu di satu layar kerja bersih.
+- **1. Baris Atas (Primary Control Bar)**:
+  - **Pencarian Mesin**: Input filter cerdas dengan ikon kaca pembesar dan tombol bersihkan (`✕`) yang menyaring kartu unit mesin secara instan berdasarkan nama, ID (`MCH`), atau lokasi workshop.
+  - **Tanggal Monitoring**: Input tanggal fleksibel (`<input type="date">`) dengan kalender pemilih bawaan serta dukungan input ketik langsung format tanggal.
+  - **Rentang Jam**: Input rentang waktu murni (Waktu Mulai `00:00` s/d Waktu Selesai `23:59`) dilengkapi ikon panduan interaktif (`ⓘ`) dengan hover tooltip ringkas:
+    - `• Per Jam : Rentang 1 – 24 Jam`
+    - `• Per Menit : Rentang 1 – 30 Menit`
+    - `• Per Detik : Rentang 1 – 30 Detik`
+  - **Tombol Aksi Dokumen**: Tombol aksen cyan **`Lihat Laporan`** untuk membuka dokumen rekapitulasi resmi di jendela pratinjau modal.
+- **2. Sub-Bar Aksi Seleksi Cepat**:
+  - Tombol seleksi cepat di sisi kanan:
+    - **Pilih Semua**: Saat seluruh mesin terpilih atau tombol diklik, kotak tombol otomatis berubah warna biru solid (`#0284c7`) dengan border cyan `#38bdf8` dan pendaran glow.
+    - **Batalkan Semua**: Kotak ber-stroke/border merah tegas (`#ef4444`) dengan latar transparan untuk membatalkan seluruh pilihan secara instan.
+- **3. Seleksi Kartu Mesin Interaktif Memanjang (Wide Horizontal Row Cards - Clean Focus)**:
+  - Kartu-kartu mesin CNC tersusun rapi memanjang dari kiri ke kanan (wide row):
+    - Ikon unit mesin, Nama Mesin (putih tebal), ID Perangkat (`MCH`), Lokasi Bengkel Presisi PT YPTI, dan Sumbu/Tipe Spindle.
+    - Status badge diagnosa ditiadakan dari kartu utama agar tampilan visual benar-benar bersih dan lapang.
+  - **Efek Hover Terang Langsung Bebas Kedut**: Saat kursor diarahkan ke kartu, kartu langsung menjadi terang secara halus dan kokoh tanpa pergeseran posisi (tanpa jitter/kedut).
+  - **Efek Berubah Warna Saat Dipilih**: Saat diklik, kartu berubah warna (*cyan border `#38bdf8` & background gradient*) dengan aksen strip vertikal cyan di sisi kiri.
+  - **Kondisi Awal (Default View)**: Saat membuka Shift Reports, sistem tidak memilih mesin secara default (0 mesin terpilih), memberikan kebebasan penuh bagi pengguna untuk memilih mesin yang diinginkan.
+- **4. Jendela Pratinjau Dokumen Laporan (Modal Pop-Up Setelah Klik "Lihat Laporan")**:
+  - Laporan muncul saat tombol **`Lihat Laporan`** ditekan.
+  - **Kop Bersih Terintegrasi**: Bagian kotak metadata dokumen di sisi kanan ditiadakan; informasi ringkasan disatukan menjadi satu baris elegan tepat di bawah nama Mitra Industri dengan format:
+    `<Tanggal Monitoring>, <Rentang Waktu>, <Daftar ID Unit Mesin>` (Contoh: `24 Oktober 2026, 00:00 - 23:59 WIB, MCH-001; MCH-002`).
+  - **Tabel Rekapitulasi Kondisi Spindle Mesin Terpilih (Tabel Atas Stay)**:
+    - Bagian Kop dan tabel ringkasan atas tetap berada di posisi (*stay / non-scrolling*) saat modal dibuka.
+    - Kolom: Mesin, Lokasi, Getaran RMS, Suhu Spindle, Health Index, Diagnosa AI, dan Rekomendasi Teknis.
+  - **Tabel Log Rincian Telemetri (List Bergulir Independen)**:
+    - Menjadi satu-satunya area yang bergulir (*scrollable*) di dalam modal, lengkap dengan judul kolom (*table header*) yang menempel di bagian atas (*sticky header*).
+    - Menampilkan log sampling telemetri adaptif (per detik jika rentang $\le 90$ detik, per 1 menit jika rentang $\le 45$ menit, atau per jam jika multi-jam).
+    - Menampilkan Waktu, Shift, Unit Mesin, Getaran RMS, Suhu Spindle, Status Diagnosa, dan Catatan Kondisi / Rekomendasi Tindakan Teknis.
+    - Baris beranomali diberi penanda peringatan (ISO 10816-3 $> 2.80\text{ mm/s}$ dan Suhu $> 45.0^\circ\text{C}$).
+  - Dilengkapi tombol **`Tutup`** dan tombol aksen **`Cetak / Simpan PDF`** untuk mencetak dokumen seketika ke format baku **A4 Landscape** (`@page { size: A4 landscape !important; margin: 8mm 14mm !important; }`), dengan `table-layout: fixed` dan distribusi kolom proporsional 100% sehingga garis batas tepi paling kanan dijamin utuh dan tidak terpotong oleh margin fisik printer (EPSON, dsb).
 
 ### 5.6. Machine Detail (Sub-Halaman)
 - Navigasi kembali `← Back` dan nama mesin.

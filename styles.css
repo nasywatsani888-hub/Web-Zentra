@@ -708,8 +708,861 @@ body {
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
+
+/* Modal Overlay & Report Preview Dialog */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  padding: 20px;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background-color: #0b111e;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 1080px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 30px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(56, 189, 248, 0.15);
+}
+
+.report-table-mini {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 0.8rem;
+}
+
+.report-table-mini th {
+  background-color: #121d30;
+  color: #94a3b8;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.report-table-mini td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #f1f5f9;
+}
+
+.report-table-mini tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.report-machine-info-card {
+  background: #111726;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Machine Search & Recommendation Dropdown (Autocomplete) */
+.machine-search-wrapper {
+  position: relative;
+  max-width: 520px;
+  margin-bottom: 12px;
+}
+
+.machine-search-input {
+  width: 100%;
+  padding: 9px 36px 9px 36px;
+  background-color: #111726;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 10px;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.machine-search-input:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
+  background-color: #141c2e;
+}
+
+.machine-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #38bdf8;
+  pointer-events: none;
+}
+
+.machine-search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color 0.15s ease;
+}
+
+.machine-search-clear:hover {
+  color: #ffffff;
+}
+
+.machine-recommendations-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #0c121e;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 10px;
+  z-index: 999;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.95);
+  display: none;
+}
+
+.machine-recommendations-list.active {
+  display: block;
+}
+
+.machine-rec-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.machine-rec-item:last-child {
+  border-bottom: none;
+}
+
+.machine-rec-item:hover,
+.machine-rec-item.selected {
+  background-color: #172236;
+}
+
+.btn-machine-tab {
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  border-radius: 8px;
+  background-color: #111726;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+.btn-machine-tab:hover {
+  background-color: #172236;
+  color: #ffffff;
+  border-color: rgba(56, 189, 248, 0.5);
+}
+.btn-machine-tab.active {
+  background-color: #172236;
+  color: #38bdf8;
+  border-color: #38bdf8;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+.btn-time-preset {
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.btn-time-preset:hover {
+  border-color: rgba(56, 189, 248, 0.6) !important;
+  color: #ffffff !important;
+  background-color: #172236 !important;
+}
+
+.report-table-mini th.col-diagnosa-ai-header {
+  text-align: center !important;
+}
+
+.report-table-mini td.col-diagnosa-ai {
+  text-align: left !important;
+}
+
+.health-bar-container {
+  width: 100%;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.health-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+/* ==========================================================================
+   INTERACTIVE SHIFT REPORT STUDIO & GENERATOR STYLES
+   ========================================================================== */
+.reports-studio-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 1. Baris Atas: Primary Control Bar */
+.reports-primary-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  background-color: #0c121e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px 18px;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.report-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.report-control-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Tooltip Info Rentang Jam */
+.info-tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.info-tooltip-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.08);
+  color: #38bdf8;
+  font-size: 0.62rem;
+  font-weight: 700;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.info-tooltip-wrapper:hover .info-tooltip-icon {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+  transform: scale(1.08);
+}
+
+.info-tooltip-content {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #090e17;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), 0 0 12px rgba(56, 189, 248, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.72rem;
+  color: #e2e8f0;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  line-height: 1.4;
+}
+
+.info-tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #090e17;
+}
+
+.info-tooltip-content::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(56, 189, 248, 0.35);
+  margin-top: 1px;
+}
+
+.info-tooltip-wrapper:hover .info-tooltip-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.report-input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.report-input-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #38bdf8;
+  pointer-events: none;
+}
+
+.report-control-input {
+  width: 100%;
+  background-color: #111726;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9px;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  padding: 8px 12px 8px 34px;
+  transition: all 0.2s ease;
+}
+
+.report-control-input:focus {
+  outline: none;
+  border-color: #38bdf8;
+  background-color: #141c2e;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.report-control-input.time-input {
+  padding: 8px 8px;
+  text-align: center;
+  width: 130px;
+  min-width: 125px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color-scheme: dark;
+}
+
+.report-control-input.date-input {
+  padding: 8px 12px 8px 34px;
+  color-scheme: dark;
+  font-weight: 500;
+}
+
+.report-input-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color 0.15s ease;
+}
+
+.report-input-clear:hover {
+  color: #ffffff;
+}
+
+/* 2. Sub-Bar Filter Status */
+.reports-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 2px 0;
+}
+
+.status-filter-pill {
+  padding: 6px 14px;
+  font-size: 0.72rem;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #111726;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.status-filter-pill:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #ffffff;
+  background-color: #151d30;
+}
+
+.status-filter-pill.active {
+  background-color: #172236;
+  border-color: #38bdf8;
+  color: #38bdf8;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.22);
+}
+
+.status-filter-pill.status-pill-urgent.active {
+  border-color: #ef4444;
+  color: #f87171;
+  background-color: rgba(127, 29, 29, 0.35);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+}
+
+.status-filter-pill.status-pill-medium.active {
+  border-color: #f59e0b;
+  color: #fbbf24;
+  background-color: rgba(120, 53, 15, 0.35);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+.status-filter-pill.status-pill-normal.active {
+  border-color: #10b981;
+  color: #34d399;
+  background-color: rgba(6, 78, 59, 0.35);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+
+.btn-select-all {
+  padding: 6px 14px;
+  font-size: 0.72rem;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-select-all:hover {
+  background: #172236;
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #ffffff;
+}
+
+/* Ketika Pilih Semua Aktif: Kotak Berwarna Biru */
+.btn-select-all.active-all {
+  background: #0284c7 !important;
+  border: 1px solid #38bdf8 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.4) !important;
+}
+
+/* Tombol Batalkan Semua: Stroke/Border Merah tanpa background merah penuh */
+.btn-deselect-all {
+  padding: 6px 14px;
+  font-size: 0.72rem;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #f87171;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-deselect-all:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: #fca5a5;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.25);
+}
+
+/* 3. Seleksi Kartu Mesin Interaktif (Memanjang dari Kiri ke Kanan, Timbul Bersih Bebas Kedut) */
+.report-machines-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.report-machine-card {
+  position: relative;
+  background: #0c121e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 13px 18px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Hover: Cukup langsung terang tanpa kedut-kedut (tanpa transform/translate) */
+.report-machine-card:hover {
+  background: #151e32;
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* Efek Berubah Warna Saat Dipilih (Tetap kokoh tanpa loncatan posisi) */
+.report-machine-card.selected {
+  background: linear-gradient(135deg, rgba(16, 32, 54, 0.98), rgba(12, 19, 33, 0.98));
+  border: 1px solid #38bdf8;
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.25);
+}
+
+.report-machine-card.selected:hover {
+  background: linear-gradient(135deg, rgba(22, 42, 70, 0.98), rgba(15, 25, 42, 0.98));
+  border-color: #38bdf8;
+}
+
+.report-machine-card.selected::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+  border-radius: 12px 0 0 12px;
+}
+
+/* 4. Lembar Dokumen Resmi Laporan (Live Paper) */
+.report-paper-container {
+  background: #0c121e;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+  margin-top: 10px;
+}
+
+/* Modal Laporan Studio */
+#report-modal .modal-content {
+  background-color: #0b111e;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 1080px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 22px 28px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(56, 189, 248, 0.15);
+}
+
+/* Container Tabel Telemetri dengan Scroll di Layar Web */
+.report-table-scroll-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  height: 270px;
+  max-height: 270px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.report-table-scroll-container thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #121d30 !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================================================
+   PRINT STYLES (A4 LANDSCAPE - SESUAI PERMINTAAN USER)
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 landscape !important;
+    margin: 8mm 25mm 8mm 14mm !important;
+  }
+
+  html,
+  body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+
+  /* Sembunyikan sidebar, header halaman web, tombol aksi, toast, dan seluruh kontrol filter */
+  #app-sidebar,
+  .top-header,
+  .overview-header,
+  .reports-primary-bar,
+  .reports-status-bar,
+  .reports-actions-bar,
+  #report-actions-bar,
+  .reports-machines-grid,
+  .btn-resolve,
+  .btn-primary,
+  .header-actions,
+  #toast-container,
+  .no-print {
+    display: none !important;
+  }
+
+  #app-main,
+  #view-content {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* Lembar Dokumen Langsung (Live Paper) saat dicetak */
+  #report-live-paper {
+    display: block !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  #report-live-paper,
+  #report-live-paper * {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    border-color: #000000 !important;
+    text-shadow: none !important;
+  }
+
+  #report-live-paper .badge,
+  #report-live-paper .badge-urgent,
+  #report-live-paper .badge-medium,
+  #report-live-paper .badge-normal {
+    border: 1px solid #000000 !important;
+    background: transparent !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+  }
+
+  /* Modal laporan berubah menjadi dokumen cetak biasa jika dibuka via modal */
+  #report-modal.modal-overlay {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  #report-modal .modal-content {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    display: block !important;
+  }
+
+  /* Hilangkan batasan scroll dan ketinggian agar tercetak lengkap utuh dari jam 00:00 */
+  .report-table-scroll-container,
+  #report-modal .report-table-scroll-container,
+  #report-modal div {
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    border: none !important;
+    display: block !important;
+  }
+
+  .report-table-scroll-container thead th {
+    position: static !important;
+    background-color: #f1f5f9 !important;
+    box-shadow: none !important;
+  }
+
+  /* Seluruh tulisan abu-abu diubah menjadi hitam pekat agar kontras dan terbaca jelas */
+  #report-modal,
+  #report-modal * {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    border-color: #000000 !important;
+    text-shadow: none !important;
+  }
+
+  #report-modal .badge,
+  #report-modal .badge-urgent,
+  #report-modal .badge-medium,
+  #report-modal .badge-normal {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+  }
+
+  .report-table-mini {
+    width: 98% !important;
+    max-width: 98% !important;
+    border-collapse: collapse !important;
+    margin: 8px 0 !important;
+    page-break-inside: auto !important;
+    table-layout: fixed !important;
+    box-sizing: border-box !important;
+    border: 1px solid #000000 !important;
+  }
+
+  .report-table-mini thead {
+    display: table-header-group !important;
+  }
+
+  .report-table-mini tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  .report-table-mini th {
+    background-color: #f1f5f9 !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    font-size: 7.2pt !important;
+    font-weight: 700 !important;
+    padding: 5px 6px !important;
+    text-align: left !important;
+    box-sizing: border-box !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+    white-space: normal !important;
+  }
+
+  .report-table-mini td {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    font-size: 6.8pt !important;
+    padding: 4px 6px !important;
+    line-height: 1.25 !important;
+    box-sizing: border-box !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+  }
+
+  /* Garis batas kolom paling kanan dibuat tebal dan tegas agar tidak terpotong printer fisik */
+  .report-table-mini th:last-child,
+  .report-table-mini td:last-child {
+    border-right: 2px solid #000000 !important;
+  }
+
+  /* Distribusi Kolom Proporsional Tabel Ringkasan (Total = 100%) */
+  .report-table-summary th:nth-child(1), .report-table-summary td:nth-child(1) { width: 14% !important; }
+  .report-table-summary th:nth-child(2), .report-table-summary td:nth-child(2) { width: 15% !important; }
+  .report-table-summary th:nth-child(3), .report-table-summary td:nth-child(3) { width: 10% !important; }
+  .report-table-summary th:nth-child(4), .report-table-summary td:nth-child(4) { width: 9% !important; }
+  .report-table-summary th:nth-child(5), .report-table-summary td:nth-child(5) { width: 8% !important; }
+  .report-table-summary th:nth-child(6), .report-table-summary td:nth-child(6) { width: 12% !important; }
+  .report-table-summary th:nth-child(7), .report-table-summary td:nth-child(7) { width: 32% !important; }
+
+  /* Distribusi Kolom Proporsional Tabel Rincian Telemetri (Total = 100%) - 6 Kolom (Kolom Shift Dihapus) */
+  .report-table-telemetry th:nth-child(1), .report-table-telemetry td:nth-child(1) { width: 11% !important; }
+  .report-table-telemetry th:nth-child(2), .report-table-telemetry td:nth-child(2) { width: 16% !important; }
+  .report-table-telemetry th:nth-child(3), .report-table-telemetry td:nth-child(3) { width: 11% !important; }
+  .report-table-telemetry th:nth-child(4), .report-table-telemetry td:nth-child(4) { width: 11% !important; }
+  .report-table-telemetry th:nth-child(5), .report-table-telemetry td:nth-child(5) { width: 13% !important; }
+  .report-table-telemetry th:nth-child(6), .report-table-telemetry td:nth-child(6) { width: 38% !important; }
+
+  .report-machine-telemetry-block {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    margin-bottom: 16px !important;
+  }
+}
+
 .toast {
   padding: 10px 18px;
   border-radius: 10px;

@@ -73,10 +73,10 @@ body {
 }
 
 /* ==========================================================================
-   SIDEBAR (Matching Image 1 Left Frame)
+   SIDEBAR (Matching Image 1 Left Frame - Collapsible on Hover)
    ========================================================================== */
 #app-sidebar {
-  width: 225px;
+  width: 72px; /* Tertutup secara default: icon-only + logo Z */
   background-color: var(--bg-frame);
   border: 1px solid var(--border-subtle);
   border-radius: 24px;
@@ -84,49 +84,77 @@ body {
   flex-direction: column;
   flex-shrink: 0;
   height: calc(100vh - 32px);
-  padding: 24px 16px;
+  padding: 24px 10px;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  z-index: 50;
+}
+
+#app-sidebar:hover {
+  width: 225px; /* Terbuka penuh saat kursor mendekat/hover */
+  padding: 24px 14px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .sidebar-brand {
-  padding: 8px 10px 24px 10px;
+  padding: 8px 12px 20px 12px;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  height: 60px;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
+/* Logo ZENTRA utuh - Tersembunyi saat tertutup, meluncur mulus saat terbuka */
 .brand-logo-img {
   width: 155px;
   height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 2px 8px rgba(0, 229, 255, 0.2));
+  filter: drop-shadow(0 2px 8px rgba(0, 229, 255, 0.25));
+  opacity: 0;
+  transform: translateX(-15px);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+/* Saat sidebar terbuka/hover: Logo ZENTRA muncul mulus */
+#app-sidebar:hover .brand-logo-img {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   flex: 1;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 11px 16px;
-  border-radius: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid transparent;
   background: transparent;
   text-align: left;
   width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .nav-item:hover {
   color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .nav-item.active {
@@ -137,10 +165,27 @@ body {
 }
 
 .nav-item svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
   flex-shrink: 0;
   stroke: currentColor;
+}
+
+.nav-item span {
+  margin-left: 14px;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+#app-sidebar:hover .nav-item span {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
 }
 
 /* ==========================================================================
@@ -338,15 +383,16 @@ body {
   flex-direction: column;
   justify-content: space-between;
   position: relative;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
   min-height: 310px;
   box-sizing: border-box;
 }
 
 .machine-card-figma:hover,
 .machine-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 /* Red Highlight Border for Outer Race Fault (Card 1) */
@@ -563,6 +609,24 @@ body {
   z-index: 5;
 }
 
+@keyframes hotspot-pulse-amber {
+  0% { transform: scale(0.9); opacity: 0.9; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.8); }
+  70% { transform: scale(1.3); opacity: 0.3; box-shadow: 0 0 0 20px rgba(245, 158, 11, 0); }
+  100% { transform: scale(0.9); opacity: 0.9; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+.pulsing-hotspot-amber {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.85) 0%, rgba(217, 119, 6, 0.3) 70%, transparent 100%);
+  border: 2px solid #f59e0b;
+  animation: hotspot-pulse-amber 1.8s infinite ease-out;
+  pointer-events: none;
+  z-index: 5;
+}
+
 .locator-pin {
   position: absolute;
   display: flex;
@@ -574,37 +638,76 @@ body {
 }
 
 .pin-label-n1 {
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 8px;
   background-color: rgba(12, 74, 110, 0.95);
   border: 1px solid #0284c7;
   color: #38bdf8;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 800;
   box-shadow: 0 0 12px rgba(2, 132, 199, 0.5);
   white-space: nowrap;
+  min-width: 36px;
+  text-align: center;
 }
 
 .pin-label-n2 {
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 8px;
   background-color: rgba(124, 45, 18, 0.95);
   border: 1px solid #ea580c;
   color: #fb923c;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 800;
   box-shadow: 0 0 12px rgba(234, 88, 12, 0.5);
   white-space: nowrap;
+  min-width: 36px;
+  text-align: center;
 }
 
 .pin-line { width: 2px; height: 24px; }
-.pin-line-n1 { background: linear-gradient(to bottom, #0284c7, transparent); }
-.pin-line-n2 { background: linear-gradient(to bottom, #ea580c, transparent); }
+.pin-line-n1 { background: #0284c7; }
+.pin-line-n2 { background: #ea580c; }
 .pin-target-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #ffffff; }
 .pin-dot-n1 { background-color: #0284c7; }
 .pin-dot-n2 { background-color: #ea580c; }
+
+/* Dynamic Pin Status Colors (Changes color based on bearing fault) */
+.pin-label-fault-red {
+  background-color: rgba(185, 28, 28, 0.95) !important;
+  border: 1.5px solid #ef4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.7) !important;
+}
+
+.pin-label-fault-amber {
+  background-color: rgba(180, 83, 9, 0.95) !important;
+  border: 1.5px solid #f59e0b !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.7) !important;
+}
+
+.pin-line-fault-red {
+  background: #ef4444 !important;
+}
+
+.pin-line-fault-amber {
+  background: #f59e0b !important;
+}
+
+.pin-dot-fault-red {
+  background-color: #ef4444 !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 12px #ef4444 !important;
+}
+
+.pin-dot-fault-amber {
+  background-color: #f59e0b !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 12px #f59e0b !important;
+}
 
 /* Tables & Forms */
 .industrial-table-wrapper {

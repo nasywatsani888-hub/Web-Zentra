@@ -711,9 +711,7 @@ function renderKpiCardsHtml() {
 }
 
 // HELPER: Generate Area Chart SVG (Matches Image 1 Dual Curves)
-function generateFigmaAreaChartSvg(data, thresholdVal, thresholdLabel, color) {
-  const width = 210;
-  const height = 58;
+function generateFigmaAreaChartSvg(data, thresholdVal, thresholdLabel, color, width = 210, height = 58) {
   const isTemp = thresholdVal > 20;
   const dataMax = Math.max(...data);
   const dataMin = Math.min(...data);
@@ -722,8 +720,8 @@ function generateFigmaAreaChartSvg(data, thresholdVal, thresholdLabel, color) {
   const range = maxVal - minVal || 1;
 
   const pts = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * (width - 12) + 6;
-    const y = height - 10 - ((v - minVal) / range) * (height - 22);
+    const x = (i / (data.length - 1)) * (width - 16) + 8;
+    const y = height - 12 - ((v - minVal) / range) * (height - 26);
     return { x, y };
   });
 
@@ -737,34 +735,35 @@ function generateFigmaAreaChartSvg(data, thresholdVal, thresholdLabel, color) {
   }
 
   const areaD = `${pathD} L ${pts[pts.length - 1].x.toFixed(1)} ${height - 6} L ${pts[0].x.toFixed(1)} ${height - 6} Z`;
-  const threshY = height - 10 - ((thresholdVal - minVal) / range) * (height - 22);
+  const threshY = height - 12 - ((thresholdVal - minVal) / range) * (height - 26);
   const gradId = "grad-" + Math.random().toString(36).substring(2, 8);
+  const isLarge = height > 80;
 
   return `
-    <svg viewBox="0 0 ${width} ${height}" class="area-chart-svg">
+    <svg viewBox="0 0 ${width} ${height}" class="area-chart-svg" style="width: 100%; height: auto; display: block;">
       <defs>
         <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${color}" stop-opacity="0.35"/>
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.38"/>
           <stop offset="100%" stop-color="${color}" stop-opacity="0.0"/>
         </linearGradient>
       </defs>
 
       <!-- Threshold Line (ISO 2.80 / MAX 45°C) -->
-      <line x1="4" y1="${threshY.toFixed(1)}" x2="${width - 4}" y2="${threshY.toFixed(1)}" 
-            stroke="#ef4444" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.8" />
-      <text x="4" y="${(threshY - 3).toFixed(1)}" fill="#ef4444" font-size="7" font-family="'Poppins', sans-serif" font-weight="600">${thresholdLabel}</text>
+      <line x1="6" y1="${threshY.toFixed(1)}" x2="${width - 6}" y2="${threshY.toFixed(1)}" 
+            stroke="#ef4444" stroke-width="${isLarge ? '1.5' : '1.2'}" stroke-dasharray="4,4" opacity="0.85" />
+      <text x="8" y="${(threshY - 4).toFixed(1)}" fill="#ef4444" font-size="${isLarge ? '10' : '7'}" font-family="'Poppins', sans-serif" font-weight="700">${thresholdLabel}</text>
 
       <!-- Shaded Gradient Area -->
       <path d="${areaD}" fill="url(#${gradId})" />
 
       <!-- Curve Line -->
-      <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" />
+      <path d="${pathD}" fill="none" stroke="${color}" stroke-width="${isLarge ? '2.5' : '2'}" stroke-linecap="round" />
 
       <!-- Active End Marker -->
-      <circle cx="${pts[pts.length - 1].x.toFixed(1)}" cy="${pts[pts.length - 1].y.toFixed(1)}" r="3" fill="${color}" stroke="#ffffff" stroke-width="1" />
+      <circle cx="${pts[pts.length - 1].x.toFixed(1)}" cy="${pts[pts.length - 1].y.toFixed(1)}" r="${isLarge ? '4.5' : '3'}" fill="${color}" stroke="#ffffff" stroke-width="${isLarge ? '1.5' : '1'}" />
     </svg>
-    <div class="chart-axis-labels">
-      <span>00</span><span>06</span><span>12</span><span>18</span><span>24</span>
+    <div class="chart-axis-labels" style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: ${isLarge ? '0.75rem' : '0.65rem'}; color: #64748b; margin-top: 6px;">
+      <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00 WIB</span>
     </div>
   `;
 }
@@ -776,83 +775,115 @@ function renderOverviewCardsHtml(sorted) {
       const isMedium = m.status === "INNER_RACE_FAULT";
       const isHealthy = m.status === "HEALTHY";
 
-      // Color scheme matching Figma Image 1:
-      // Card 1: Red (#ef4444)
-      // Card 2: Amber (#f59e0b)
-      // Card 3: Blue (#38bdf8)
-      // Card 4: Green (#22c55e)
-      let color = "#22c55e";
-      let statusIcon = "✓";
-      let valClass = "val-green";
+      // Color scheme
+      let badgeClass = "badge-normal";
+      let badgeText = "NORMAL";
+      let vibColor = "#10b981";
+      let tempColor = "#38bdf8";
+      let healthColor = "#10b981";
+      let healthStatusText = "Kondisi Prima";
+      let cardFaultBorder = "border: 1px solid rgba(16, 185, 129, 0.3);";
+
+      // Hotspot markup on the mini horizontal spindle (Opsi 1 - Precision Locked: N1 at 76px, N2 at 204px)
+      let hotspotHtml = `
+        <!-- N1 Dot Healthy (Rear) -->
+        <div style="position: absolute; left: 76px; top: 75px; transform: translate(-50%, -50%); width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 10px #10b981; z-index: 6;"></div>
+        <!-- N2 Dot Healthy (Front) -->
+        <div style="position: absolute; left: 204px; top: 75px; transform: translate(-50%, -50%); width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 10px #10b981; z-index: 6;"></div>
+      `;
 
       if (isUrgent) {
-        color = "#ef4444";
-        statusIcon = "⚠";
-        valClass = "val-red";
+        badgeClass = "badge-urgent";
+        badgeText = "URGENT";
+        vibColor = "#ef4444";
+        tempColor = "#ef4444";
+        healthColor = "#ef4444";
+        healthStatusText = "Kritis";
+        cardFaultBorder = "border: 1.5px solid rgba(239, 68, 68, 0.6); box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);";
+        hotspotHtml = `
+          <!-- N1 Dot Normal -->
+          <div style="position: absolute; left: 76px; top: 75px; transform: translate(-50%, -50%); width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #0284c7; z-index: 6;"></div>
+          <!-- N2 Hotspot Pulsing Red Locked to Front Bearing -->
+          <div class="pulsing-hotspot" style="position: absolute; left: 204px; top: 75px; transform: translate(-50%, -50%); z-index: 7;"></div>
+          <div style="position: absolute; left: 204px; top: 75px; transform: translate(-50%, -50%); width: 8px; height: 8px; border-radius: 50%; background: #ef4444; z-index: 8;"></div>
+        `;
       } else if (isMedium) {
-        color = "#f59e0b";
-        statusIcon = "✓";
-        valClass = "val-amber";
-      } else if (m.id === "CNC-003") {
-        color = "#38bdf8";
-        statusIcon = "✓";
-        valClass = "val-blue";
+        badgeClass = "badge-medium";
+        badgeText = "WARNING";
+        vibColor = "#f59e0b";
+        tempColor = "#f59e0b";
+        healthColor = "#f59e0b";
+        healthStatusText = "Waspada";
+        cardFaultBorder = "border: 1.5px solid rgba(245, 158, 11, 0.5); box-shadow: 0 0 16px rgba(245, 158, 11, 0.12);";
+        hotspotHtml = `
+          <!-- N1 Hotspot Pulsing Amber Locked to Rear Bearing -->
+          <div class="pulsing-hotspot-amber" style="position: absolute; left: 76px; top: 75px; transform: translate(-50%, -50%); z-index: 7;"></div>
+          <div style="position: absolute; left: 76px; top: 75px; transform: translate(-50%, -50%); width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; z-index: 8;"></div>
+          <!-- N2 Dot Normal -->
+          <div style="position: absolute; left: 204px; top: 75px; transform: translate(-50%, -50%); width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #0284c7; z-index: 6;"></div>
+        `;
       }
 
-      const cardFaultClass = isUrgent ? "card-fault-urgent" : "";
-
       return `
-        <div class="machine-card-figma ${cardFaultClass}" onclick="switchView('machine-detail', '${m.id}')" style="cursor: pointer;">
-          <!-- Top Row: Title + RUN Pill -->
-          <div class="card-top-row">
-            <div class="card-title-text">${m.name}</div>
-            <div class="card-run-pill">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>RUN LIVE</span>
+        <div class="machine-card-figma" onclick="switchView('machine-detail', '${m.id}')" style="cursor: pointer; ${cardFaultBorder}">
+          <!-- Top Row: Title, Device ID, & Status Pill (No LIVE pill - Sesuai Gambar 1) -->
+          <div class="card-top-row" style="margin-bottom: 12px;">
+            <div>
+              <div class="card-title-text" style="font-size: 1.15rem; font-weight: 700; color: #ffffff;">${escapeHtml(m.name)}</div>
+              <div style="font-family: var(--font-mono); font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">
+                ${escapeHtml(m.location)} · ID: <span style="color: #38bdf8; font-weight: 600;">${m.deviceId}</span>
+              </div>
+            </div>
+            <div>
+              <span class="badge ${badgeClass}" style="font-size: 0.72rem; padding: 4px 12px; font-weight: 700;">${badgeText}</span>
             </div>
           </div>
 
-          <!-- Middle Row: Dual Charts Side-by-Side (Matches Image 1) -->
-          <div class="dual-charts-grid">
-            <!-- Left Chart: Tren Getaran RMS -->
-            <div class="chart-box-figma">
-              <div class="chart-header-figma">
-                <span class="chart-label-figma">TREN GETARAN RMS</span>
-                <span class="chart-val-figma ${valClass}">${m.vibrationRms.toFixed(2)} mm/s ${statusIcon}</span>
-              </div>
-              ${generateFigmaAreaChartSvg(m.historyVibRms, 2.80, "ISO 2.80", color)}
-            </div>
-
-            <!-- Right Chart: Tren Suhu Bantalan -->
-            <div class="chart-box-figma">
-              <div class="chart-header-figma">
-                <span class="chart-label-figma">TREN SUHU BANTALAN</span>
-                <span class="chart-val-figma ${valClass}">${m.temperature.toFixed(1)} °C ${statusIcon}</span>
-              </div>
-              ${generateFigmaAreaChartSvg(m.historyTemp, 45.0, "MAX 45°C", color)}
-            </div>
+          <!-- Middle Row: Clean 3D Spindle Image Only (Tanpa Hotspot & Tanpa N1 N2 - Sesuai Gambar 1) -->
+          <div style="position: relative; width: 100%; height: 150px; background: rgba(10, 15, 26, 0.75); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 14px;">
+            <img src="./images/spindle-horizontal.png" alt="3D Spindle" style="max-height: 110px; width: 85%; object-fit: contain; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.85));" />
           </div>
 
-          <!-- Bottom Row: 3 Metric Boxes -->
-          <div class="metrics-row-figma">
-            <div class="metric-pill-box">
-              <div class="metric-pill-label">Vibration RMS</div>
-              <div class="metric-pill-val" style="color: ${color}; font-weight: 700;">${m.vibrationRms.toFixed(2)} mm/s</div>
+          <!-- Bottom Row: 3 Metric Direct Numbers with Threshold Limits -->
+          <div class="metrics-row-figma" style="margin-bottom: 14px;">
+            <!-- Metric 1: Vibration RMS -->
+            <div class="metric-pill-box" style="padding: 10px 12px;">
+              <div class="metric-pill-label" style="font-size: 0.68rem; color: #94a3b8;">Vibration RMS</div>
+              <div id="card-vib-${m.id}" class="metric-pill-val" style="color: ${vibColor}; font-weight: 800; font-size: 1.15rem; margin: 2px 0;">
+                ${m.vibrationRms.toFixed(2)} mm/s
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 0.62rem; color: #64748b;">
+                Batas ISO: <strong>2.80 mm/s</strong>
+              </div>
             </div>
-            <div class="metric-pill-box">
-              <div class="metric-pill-label">Spindle Temp</div>
-              <div class="metric-pill-val" style="color: ${m.temperature > 45 ? "#ef4444" : "#38bdf8"}; font-weight: 700;">${m.temperature.toFixed(1)} °C</div>
+
+            <!-- Metric 2: Spindle Temp -->
+            <div class="metric-pill-box" style="padding: 10px 12px;">
+              <div class="metric-pill-label" style="font-size: 0.68rem; color: #94a3b8;">Suhu Spindle</div>
+              <div id="card-temp-${m.id}" class="metric-pill-val" style="color: ${tempColor}; font-weight: 800; font-size: 1.15rem; margin: 2px 0;">
+                ${m.temperature.toFixed(1)} °C
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 0.62rem; color: #64748b;">
+                Batas Maks: <strong>45.0 °C</strong>
+              </div>
             </div>
-            <div class="metric-pill-box">
-              <div class="metric-pill-label">Health Index</div>
-              <div class="metric-pill-val" style="color: ${color}; font-weight: 700;">${m.healthIndex}%</div>
+
+            <!-- Metric 3: Health Index -->
+            <div class="metric-pill-box" style="padding: 10px 12px;">
+              <div class="metric-pill-label" style="font-size: 0.68rem; color: #94a3b8;">Health Index</div>
+              <div id="card-health-${m.id}" class="metric-pill-val" style="color: ${healthColor}; font-weight: 800; font-size: 1.15rem; margin: 2px 0;">
+                ${m.healthIndex}%
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 0.62rem; color: #94a3b8;">
+                ${healthStatusText}
+              </div>
             </div>
           </div>
 
           <!-- Bottom Action Button -->
-          <div class="card-bottom-actions">
-            <button class="btn-detail-diagnostik" onclick="event.stopPropagation(); switchView('machine-detail', '${m.id}')">
-              Detail Diagnostik
+          <div class="card-bottom-actions" style="margin-top: 0;">
+            <button class="btn-detail-diagnostik" onclick="event.stopPropagation(); switchView('machine-detail', '${m.id}')" style="width: 100%; justify-content: center; padding: 10px 0; font-size: 0.82rem; font-weight: 600;">
+              Detail Diagnostik Spindle →
             </button>
           </div>
         </div>
@@ -975,21 +1006,19 @@ function renderSpindleDiagnosticHtml() {
   const isN2Fault = machine.status === "OUTER_RACE_FAULT";
   const isN1Fault = machine.status === "INNER_RACE_FAULT";
 
-  // Hotspot di 3D Horizontal Spindle Locator (Gambar 2)
-  let horizontalHotspotHtml = "";
-  if (isN2Fault) {
-    horizontalHotspotHtml = `<div class="pulsing-hotspot" style="right: 17%; top: 48%; transform: translateY(-50%);"></div>`;
-  } else if (isN1Fault) {
-    horizontalHotspotHtml = `<div class="pulsing-hotspot" style="left: 20%; top: 48%; transform: translateY(-50%);"></div>`;
-  }
+  // Dynamic Pin N1 and N2 status & colors (Hanya teks "N1" dan "N2" agar rapi & tidak tabrakan)
+  let pinN1LabelClass = "pin-label-n1";
+  let pinN1LineClass = "pin-line pin-line-n1";
+  let pinN1DotClass = "pin-target-dot pin-dot-n1";
+  let pinN1LabelText = "N1";
 
-  // Hotspot di Vertical Cutaway Spindle (Gambar 4)
-  let verticalHotspotHtml = "";
-  if (isN2Fault) {
-    verticalHotspotHtml = `<div class="pulsing-hotspot" style="left: 36%; bottom: 16%;"></div>`;
-  } else if (isN1Fault) {
-    verticalHotspotHtml = `<div class="pulsing-hotspot" style="left: 36%; top: 22%;"></div>`;
-  }
+  let pinN2LabelClass = "pin-label-n2";
+  let pinN2LineClass = "pin-line pin-line-n2";
+  let pinN2DotClass = "pin-target-dot pin-dot-n2";
+  let pinN2LabelText = "N2";
+
+  let vibColor = "#10b981";
+  let tempColor = "#38bdf8";
 
   // Anomaly Banner configuration (Gambar 2)
   let bannerBg = "rgba(16, 185, 129, 0.1)";
@@ -1008,6 +1037,12 @@ function renderSpindleDiagnosticHtml() {
     bannerMsg = "N2 bearing vibration exceeds ISO limit (BPFO: 142 Hz). Recommended technical response: within 4 hours.";
     badgeClass = "badge-urgent";
     badgeText = "Urgent";
+    vibColor = "#ef4444";
+    tempColor = "#ef4444";
+    pinN2LabelClass = "pin-label-n2 pin-label-fault-red";
+    pinN2LineClass = "pin-line pin-line-n2 pin-line-fault-red";
+    pinN2DotClass = "pin-target-dot pin-dot-n2 pin-dot-fault-red";
+    pinN2LabelText = "N2";
   } else if (isN1Fault) {
     bannerBg = "rgba(120, 53, 15, 0.7)";
     bannerBorder = "#f59e0b";
@@ -1016,6 +1051,12 @@ function renderSpindleDiagnosticHtml() {
     bannerMsg = "N1 bearing degradation detected (BPFI: 218 Hz). Lubrication replenishment recommended.";
     badgeClass = "badge-medium";
     badgeText = "Medium";
+    vibColor = "#f59e0b";
+    tempColor = "#f59e0b";
+    pinN1LabelClass = "pin-label-n1 pin-label-fault-amber";
+    pinN1LineClass = "pin-line pin-line-n1 pin-line-fault-amber";
+    pinN1DotClass = "pin-target-dot pin-dot-n1 pin-dot-fault-amber";
+    pinN1LabelText = "N1";
   }
 
   // Baris Tabel Output Sensor Live Stream
@@ -1032,19 +1073,6 @@ function renderSpindleDiagnosticHtml() {
     )
     .join("");
 
-  // Machine Switcher Tabs HTML
-  const machineTabsHtml = state.machines.map((m) => {
-    const isSelected = m.id === machine.id;
-    const dotColor = m.status === "OUTER_RACE_FAULT" ? "#ef4444" : m.status === "INNER_RACE_FAULT" ? "#f59e0b" : "#10b981";
-    return `
-      <button class="btn-machine-tab ${isSelected ? 'active' : ''}" onclick="selectSpindleMachine('${m.id}')" style="display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px;">
-        <span style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; box-shadow: 0 0 8px ${dotColor};"></span>
-        <span style="font-weight: ${isSelected ? '700' : '500'};">${escapeHtml(m.name)}</span>
-        <span style="font-size: 0.68rem; opacity: 0.75;">(${m.deviceId})</span>
-      </button>
-    `;
-  }).join("");
-
   // Target bearing text
   const targetBearingName = isN2Fault
     ? "Front Bearing"
@@ -1058,7 +1086,7 @@ function renderSpindleDiagnosticHtml() {
     : "Spindle · N1 (Rear) & N2 (Front) Normal";
 
   return `
-    <!-- TOP HEADER: Back Button, Machine Title, & Machine Tabs Switcher (Sesuai Gambar 2) -->
+    <!-- TOP HEADER: Back Button & Machine Title (Tanpa tabs pilihan mesin lain - Sesuai Gambar 2) -->
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
       <div style="display: flex; align-items: center; gap: 16px;">
         <button class="btn-resolve" onclick="switchView('spindle')" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; font-size: 0.84rem; cursor: pointer; border-radius: 8px; background: rgba(51, 65, 85, 0.5); border: 1px solid rgba(148, 163, 184, 0.3); color: #f1f5f9;">
@@ -1074,10 +1102,6 @@ function renderSpindleDiagnosticHtml() {
             ${escapeHtml(machine.location)} · ID Perangkat: <span style="color: #38bdf8; font-weight: 600;">${machine.deviceId}</span> · Spindle Speed: <strong style="color: #ffffff;">${machine.spindleSpeedRpm} RPM</strong> · Jam Operasi: <strong style="color: #ffffff;">${machine.runHours} Jam</strong>
           </div>
         </div>
-      </div>
-
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        ${machineTabsHtml}
       </div>
     </div>
 
@@ -1114,7 +1138,7 @@ function renderSpindleDiagnosticHtml() {
         </div>
       </div>
 
-      <!-- Spindle Locator Right: 3D Spindle Locator -->
+      <!-- Spindle Locator Right: 3D Spindle Locator (Sesuai Gambar 2 - N1 & N2 Berubah Warna saat Rusak, Tanpa Hotspot Merah) -->
       <div class="machine-card" style="cursor: default;">
         <div class="card-header-row" style="margin-bottom: 12px;">
           <div style="font-family: var(--font-mono); font-weight: 700; color: #ffffff; font-size: 0.95rem;">3D Spindle Locator</div>
@@ -1124,26 +1148,24 @@ function renderSpindleDiagnosticHtml() {
         <div class="spindle-view-container" style="flex: 1; min-height: 200px;">
           <img src="./images/spindle-horizontal.png" alt="3D Spindle" class="spindle-img-horizontal" />
           
-          <!-- Pin N1 (Rear Bearing) -->
-          <div class="locator-pin" style="left: 17%; top: 16%;">
-            <div class="pin-label-n1">N1 - Rear Bearing</div>
-            <div class="pin-line pin-line-n1"></div>
-            <div class="pin-target-dot pin-dot-n1"></div>
+          <!-- Pin N1 (Rear Bearing - Ditargetkan tepat ke bantalan belakang sesuai Gambar 1) -->
+          <div class="locator-pin" style="left: 41%; top: 16%; transform: translateX(-50%);">
+            <div class="${pinN1LabelClass}">${pinN1LabelText}</div>
+            <div class="${pinN1LineClass}"></div>
+            <div class="${pinN1DotClass}"></div>
           </div>
 
-          <!-- Pin N2 (Front Bearing) -->
-          <div class="locator-pin" style="right: 17%; top: 16%;">
-            <div class="pin-label-n2">N2 - Front Bearing</div>
-            <div class="pin-line pin-line-n2"></div>
-            <div class="pin-target-dot pin-dot-n2"></div>
+          <!-- Pin N2 (Front Bearing - Ditargetkan tepat ke bantalan depan sesuai Gambar 1) -->
+          <div class="locator-pin" style="left: 61%; top: 16%; transform: translateX(-50%);">
+            <div class="${pinN2LabelClass}">${pinN2LabelText}</div>
+            <div class="${pinN2LineClass}"></div>
+            <div class="${pinN2DotClass}"></div>
           </div>
-
-          ${horizontalHotspotHtml}
         </div>
       </div>
     </div>
 
-    <!-- ROW 2: REKOMENDASI PENANGANAN UNTUK SPINDLE YANG RUSAK (Gambar 4 - Service Log Card) -->
+    <!-- ROW 2: REKOMENDASI PENANGANAN SPINDLE (Sesuai Gambar 3 - Tanpa Lingkaran Hotspot & Tanpa Tombol Tugaskan Teknisi) -->
     <div class="machine-card" style="cursor: default; margin-bottom: 20px;">
       <div class="card-header-row" style="border-bottom: 1px solid rgba(51, 65, 85, 0.4); padding-bottom: 12px; margin-bottom: 16px;">
         <div>
@@ -1158,10 +1180,9 @@ function renderSpindleDiagnosticHtml() {
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; align-items: center;">
-        <!-- Spindle Vertical Cutaway Photo with Red Glowing Hotspot -->
+        <!-- Spindle Vertical Cutaway Photo (Bersih Tanpa Hotspot Merah) -->
         <div class="spindle-view-container" style="aspect-ratio: 3 / 4; max-height: 240px; padding: 10px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;">
           <img src="./images/spindle-cutaway.png" alt="Vertical Cutaway Spindle" style="height: 100%; object-fit: contain;" />
-          ${verticalHotspotHtml}
         </div>
 
         <!-- Maintenance & Diagnostic Details -->
@@ -1200,49 +1221,59 @@ function renderSpindleDiagnosticHtml() {
               </div>
               <div class="metric-box" style="flex: 1; padding: 10px;">
                 <div class="metric-label" style="font-size: 0.68rem;">Health Index</div>
-                <div style="font-weight: 800; font-size: 1.05rem; color: #38bdf8;">
+                <div id="spindle-live-health" style="font-weight: 800; font-size: 1.05rem; color: #38bdf8;">
                   ${machine.healthIndex}%
                 </div>
               </div>
             </div>
           </div>
-
-          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px;">
-            <button class="btn-primary" onclick="showToast('Teknisi maintenance berhasil ditugaskan ke unit ${machine.name}!')" style="padding: 10px 20px; font-size: 0.82rem;">
-              Tugaskan Teknisi
-            </button>
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- ROW 3: Temperature & Vibration Monitoring (24-Hour) (Gambar 3 - Tanpa Status Mesin & Speedometer Bawah) -->
+    <!-- ROW 3: TEMPERATURE & VIBRATION MONITORING (24-HOUR) (Sesuai Gambar 5 - Dual Area Gradient Curves) -->
     <div class="machine-card" style="cursor: default; margin-bottom: 20px;">
       <div class="card-header-row" style="margin-bottom: 16px;">
         <div>
           <div style="font-family: var(--font-mono); font-weight: 700; color: #ffffff; font-size: 1rem;">
             Temperature & Vibration Monitoring (24-Hour)
           </div>
-          <div class="card-location font-mono">Batas Standar ISO 10816: 2.80 mm/s</div>
-        </div>
-        <div style="display: flex; gap: 16px; font-family: var(--font-mono); font-size: 0.75rem; flex-wrap: wrap;">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="width: 10px; height: 10px; border-radius: 50%; background: #00e5ff;"></span>
-            <span style="color: #cbd5e1;">Vibration RMS</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="width: 10px; height: 10px; border-radius: 50%; background: #fbbf24;"></span>
-            <span style="color: #cbd5e1;">Spindle Temp</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="width: 12px; height: 2px; background: #ef4444;"></span>
-            <span style="color: #ef4444;">Batas ISO (2.80 mm/s)</span>
+          <div class="card-location font-mono" style="font-size: 0.75rem; color: #94a3b8;">
+            Evaluasi Tren Real-Time Multi-Sensor Berdasarkan Standar ISO 10816-3 (Batas 2.80 mm/s) & Batas Suhu Maksimal (45.0 °C)
           </div>
         </div>
       </div>
 
-      <div style="width: 100%; height: 260px; position: relative;">
-        <canvas id="dual-monitoring-canvas" style="width: 100%; height: 100%;"></canvas>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;">
+        <!-- Chart Left: TREN GETARAN RMS -->
+        <div style="background: rgba(10, 15, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">
+              Tren Getaran RMS
+            </div>
+            <div id="detail-vib-header" style="font-family: var(--font-mono); font-size: 0.95rem; font-weight: 800; color: ${vibColor};">
+              ${machine.vibrationRms.toFixed(2)} mm/s ${isN2Fault || isN1Fault ? '⚠️' : '✓'}
+            </div>
+          </div>
+          <div id="detail-chart-vib-container">
+            ${generateFigmaAreaChartSvg(machine.historyVibRms, 2.80, "ISO 2.80", vibColor, 440, 110)}
+          </div>
+        </div>
+
+        <!-- Chart Right: TREN SUHU BANTALAN -->
+        <div style="background: rgba(10, 15, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">
+              Tren Suhu Bantalan
+            </div>
+            <div id="detail-temp-header" style="font-family: var(--font-mono); font-size: 0.95rem; font-weight: 800; color: ${tempColor};">
+              ${machine.temperature.toFixed(1)} °C ${machine.temperature >= 45 ? '⚠️' : '✓'}
+            </div>
+          </div>
+          <div id="detail-chart-temp-container">
+            ${generateFigmaAreaChartSvg(machine.historyTemp, 45.0, "MAX 45°C", tempColor, 440, 110)}
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -1252,7 +1283,9 @@ function attachSpindleEvents() {
   const machine =
     state.machines.find((m) => m.id === state.selectedMachineId) ||
     state.machines[0];
-  drawDualCanvasChart("dual-monitoring-canvas", machine);
+  if (document.getElementById("dual-monitoring-canvas")) {
+    drawDualCanvasChart("dual-monitoring-canvas", machine);
+  }
 }
 
 // ==============================================================================
@@ -1356,11 +1389,9 @@ function renderServiceLogHtml() {
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: center; margin: 16px 0;">
-            <!-- Spindle Vertical Cutaway Photo with Red Glowing Hotspot -->
+            <!-- Spindle Vertical Cutaway Photo (Bersih Tanpa Hotspot) -->
             <div class="spindle-view-container" style="aspect-ratio: 3 / 4; max-height: 240px; padding: 8px;">
               <img src="./images/spindle-cutaway.png" alt="Vertical Cutaway Spindle" style="height: 100%; object-fit: contain;" />
-              <!-- Hotspot merah menyala pada bola bearing bawah -->
-              <div class="pulsing-hotspot" style="left: 36%; bottom: 16%;"></div>
             </div>
 
             <!-- Maintenance Details -->
@@ -1389,12 +1420,6 @@ function renderServiceLogHtml() {
                 </div>
               </div>
             </div>
-          </div>
-
-          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
-            <button class="btn-primary" onclick="showToast('Teknisi berhasil ditugaskan ke unit ${m.name}!')">
-              Tugaskan Teknisi
-            </button>
           </div>
         </div>
       `;
@@ -2058,7 +2083,7 @@ function renderShiftReportsHtml() {
       <!-- HEADER HALAMAN -->
       <div class="top-header no-print" style="margin-bottom: 4px;">
         <div>
-          <h2 class="page-title">Shift Reports</h2>
+          <h2 class="page-title">Data History</h2>
           <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">
             Generator Rekapitulasi Pemantauan Spindle CNC • PT Yogya Presisi Tehnikatama Industri (YPTI)
           </p>
@@ -3262,10 +3287,22 @@ function initLiveSimulation() {
 
 function updateDynamicDom() {
   if (state.currentView === "spindle" || state.currentView === "overview") {
-    const grid = document.getElementById("overview-machine-grid");
-    if (grid) {
-      grid.innerHTML = renderOverviewCardsHtml(getSortedMachines());
-    }
+    // Update data metrik in-place tanpa menghapus/membuat ulang DOM kartu agar hover bebas kedut (flicker-free smooth lift)
+    state.machines.forEach((m) => {
+      const vibEl = document.getElementById(`card-vib-${m.id}`);
+      if (vibEl) {
+        vibEl.textContent = `${m.vibrationRms.toFixed(2)} mm/s`;
+      }
+      const tempEl = document.getElementById(`card-temp-${m.id}`);
+      if (tempEl) {
+        tempEl.textContent = `${m.temperature.toFixed(1)} °C`;
+      }
+      const healthEl = document.getElementById(`card-health-${m.id}`);
+      if (healthEl) {
+        healthEl.textContent = `${m.healthIndex}%`;
+      }
+    });
+
     const kpi = document.getElementById("overview-kpi-container");
     if (kpi) {
       kpi.innerHTML = renderKpiCardsHtml();
@@ -3301,9 +3338,41 @@ function updateDynamicDom() {
       liveTemp.textContent = `${machine.temperature.toFixed(1)} °C`;
       liveTemp.style.color = machine.temperature >= 45 ? '#ef4444' : '#38bdf8';
     }
+    const liveHealth = document.getElementById("spindle-live-health");
+    if (liveHealth) {
+      liveHealth.textContent = `${machine.healthIndex}%`;
+    }
 
-    // Redraw dual monitoring canvas chart
-    drawDualCanvasChart("dual-monitoring-canvas", machine);
+    // Live update Dual Area Gradient Charts (Sesuai Gambar 5)
+    const isN2Fault = machine.status === "OUTER_RACE_FAULT";
+    const isN1Fault = machine.status === "INNER_RACE_FAULT";
+    const vibColor = isN2Fault ? "#ef4444" : isN1Fault ? "#f59e0b" : "#10b981";
+    const tempColor = isN2Fault ? "#ef4444" : isN1Fault ? "#f59e0b" : "#38bdf8";
+
+    const vibHeader = document.getElementById("detail-vib-header");
+    if (vibHeader) {
+      vibHeader.textContent = `${machine.vibrationRms.toFixed(2)} mm/s ${isN2Fault || isN1Fault ? '⚠️' : '✓'}`;
+      vibHeader.style.color = vibColor;
+    }
+    const tempHeader = document.getElementById("detail-temp-header");
+    if (tempHeader) {
+      tempHeader.textContent = `${machine.temperature.toFixed(1)} °C ${machine.temperature >= 45 ? '⚠️' : '✓'}`;
+      tempHeader.style.color = tempColor;
+    }
+
+    const chartVib = document.getElementById("detail-chart-vib-container");
+    if (chartVib) {
+      chartVib.innerHTML = generateFigmaAreaChartSvg(machine.historyVibRms, 2.80, "ISO 2.80", vibColor, 440, 110);
+    }
+    const chartTemp = document.getElementById("detail-chart-temp-container");
+    if (chartTemp) {
+      chartTemp.innerHTML = generateFigmaAreaChartSvg(machine.historyTemp, 45.0, "MAX 45°C", tempColor, 440, 110);
+    }
+
+    // Redraw dual monitoring canvas chart jika masih ada di DOM
+    if (document.getElementById("dual-monitoring-canvas")) {
+      drawDualCanvasChart("dual-monitoring-canvas", machine);
+    }
   } else if (state.currentView === "reports") {
     // Tidak mere-render kartu setiap detik agar hover tetap mulus bebas kedut
   }

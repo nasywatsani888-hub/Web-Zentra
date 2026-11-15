@@ -143,6 +143,6 @@ Biar kodingan tetap sinkron dan tidak bentrok (*conflict*):
 
 ## 👥 Tim Pengembang
 
-**Tim Kata Budi "Pengen Jadi Mapres"**  
+**Growth Tim**  
 Fakultas Teknik — Universitas Negeri Yogyakarta (UNY)  
 *Kolaborasi Riset Terapan Smart Manufacturing bersama PT YPTI (2026).*

@@ -106,8 +106,8 @@ Web zentra/
 ## 🎨 Spesifikasi Desain & Antarmuka (Figma Standard)
 
 - **Font**: 100% menggunakan font **Poppins** (Google Fonts).
-- **Ukuran Judul Halaman**: **24px** (Figma Size 24, SemiBold 600) untuk *Overview*, *Spindle Diagnostic*, *Device Registry*, *Service Log*, dan *Shift Reports*.
-- **Sidebar Kiri**: Lebar presisi **225px** dengan 5 menu terstruktur.
+- **Ukuran Judul Halaman**: **24px** (Figma Size 24, SemiBold 600) untuk *Spindle Diagnostic*, *Data History*, *Device Registry*, *Machine Detail*, *Add Machine*, dan *Service Log*.
+- **Sidebar Kiri**: Collapsible dinamis (lebar **72px** saat tertutup untuk memaksimalkan area kerja dan meluas mulus menjadi **225px** saat hover dengan animasi logo ZENTRA).
 - **Warna Utama**:
   - Background Canvas: `#000000` (Deep Black)
   - Frame / Container: `#0a0d14` (radius 24px)
